@@ -14,7 +14,19 @@ Storage.prototype.add = function(name) {
     return item;
 };
 
+Storage.prototype.update = function(id, name) {
+
+	var item = this.items.find(function(item){
+		return item.id == id;
+	});
+	item.name = name;
+	return item;
+
+}
+
 Storage.prototype.remove = function(id) {
+
+
 	var self = this;
 	var removed;
 
@@ -23,18 +35,9 @@ Storage.prototype.remove = function(id) {
 			removed = self.items.splice(index, 1);
 		}
 	});
-	return removed;
+	return removed[0];
 };
 
-Storage.prototype.updateMe = function(id) {
-	var self = this;
-	var updated;
-	this.items.forEach(function(item, index){
-		if(item.id == id){
-			return item;
-		}
-	})
-}
 
 var storage = new Storage();
 storage.add('Broad beans');
@@ -43,7 +46,6 @@ storage.add('Peppers');
 
 var app = express();
 app.use(express.static('public'));
-
 app.get('/items', function(req, res) {
     res.json(storage.items);
 });
@@ -53,10 +55,20 @@ app.post('/items', jsonParser, function(req, res){
 	if (!req.body) {
 		return res.sendStatus(400);
 	}
-
 	var item = storage.add(req.body.name);
 	res.status(201).json(item);
 });
+
+
+app.put('/items/:id', jsonParser, function(req, res){
+	if (!req.body) {
+		return res.sendStatus(400);
+	}
+	var item = storage.update(req.params.id, req.body.name);
+	res.status(201).json(item);
+
+});
+
 
 app.delete('/items/:id', jsonParser, function(req, res){
 	if (!req.body) {
@@ -65,17 +77,14 @@ app.delete('/items/:id', jsonParser, function(req, res){
 	var item = storage.remove(req.params.id);
 	res.status(200).json(item);
 
+
 });
 
-app.put('/items/:id', jsonParser, function(req, res){
-	if (!req.body) {
-		return res.sendStatus(400);
-	}
 
-	//var item = storage.add(req.body.name);
-	res.status(201);
-});
 
 
 
 app.listen(process.env.PORT || 8080);
+
+exports.app = app;
+exports.storage = storage;
